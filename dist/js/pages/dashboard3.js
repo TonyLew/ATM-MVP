@@ -67,28 +67,28 @@ $(function calling_object() {
 
   //addMapMarkers( getYTJSON() );
 
-  $.ajax({
-    url: url,
-    data: data,
-    success: success,
-    dataType: dataType
-  });
+  //$.ajax({
+  //  url: url,
+  //  data: data,
+  //  success: success,
+  //  dataType: dataType
+  //});
 
     // Usage: get something via ajax
-    //poll(function() {
-    //  addMapMarkers( getYTJSON() );
-    //  alert("start poll");
-    //  return axios.get( 'something.json' );
-    //  }, millisecondsTimeout, timeInterval).then(function() {
-    //    alert("then poll");
-    //    // Polling done, now do something else!
-    //    //poll(function() { return axios.get( getYTJSON() ) }, millisecondsTimeout, timeInterval);
-    //    //addMapMarkers( getYTJSON() );
-    //  }).catch(function() {
-    //    addMapMarkers( getYTJSON() );
-    //    alert("catch poll");
-    //    // Polling timed out, handle the error!
-    //});
+    poll(function() {
+      addMapMarkers( getYTJSON() );
+      alert("start poll");
+      return axios.get( 'something.json' );
+      }, millisecondsTimeout, timeInterval).then(function() {
+        alert("then poll");
+        // Polling done, now do something else!
+        //poll(function() { return axios.get( getYTJSON() ) }, millisecondsTimeout, timeInterval);
+        //addMapMarkers( getYTJSON() );
+      }).catch(function() {
+        addMapMarkers( getYTJSON() );
+        alert("catch poll");
+        // Polling timed out, handle the error!
+    });
 
   //Promise.all([
   //    poll(function() { return axios.get('something1.json'); 
