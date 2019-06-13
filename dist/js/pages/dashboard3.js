@@ -1,51 +1,5 @@
 
-var isPaused = false;
-function sleep(milliseconds) {
-  var start = new Date().getTime();
-  isPaused = true;
-  for (var i = 0; i < 1e7; i++) {
-    if ((new Date().getTime() - start) > milliseconds){
-      isPaused = false;
-      break;
-    }
-  }
-}
 
-
-// The polling function
-function poll(fn, timeout, interval) {
-  var endTime = Number(new Date()) + (timeout || 2000);
-  interval = interval || 100;
-  
-  //addMapMarkers( getYTJSON() );
-
-  var checkCondition = function(resolve, reject) { 
-      addMapMarkers( getYTJSON() );
-      var ajax = fn();
-      // dive into the ajax promise
-      ajax.then( function(response){
-          // If the condition is met, we're done!
-          //addMapMarkers( getYTJSON() );
-          //if (response.data.var == true) {
-          //    resolve(response.data.var);
-          //}
-          // If the condition isn't met but the timeout hasn't elapsed, go again
-          //else if (Number(new Date()) < endTime) {
-          if (Number(new Date()) < endTime) {
-              //addMapMarkers( getYTJSON() );
-              setTimeout(checkCondition, interval, resolve, reject);
-          }
-          // Didn't match and too much time, reject!
-          else {
-              reject(new Error('timed out for ' + fn + ': ' + arguments));
-          }
-          //addMapMarkers( getYTJSON() );
-
-      });
-  };
-  return new Promise(checkCondition);
-
-} // poll
 
 
 $(function calling_object() {
@@ -56,53 +10,62 @@ $(function calling_object() {
   var timeInterval = 3000;
   var now = new Date().getTime();
   var millisecondsTimeout = 5000; /* i.e. 5 second */
-
-  var mapmarkersjson;
   var promise;
-  mapmarkersjson = 
-  [ 
-    { latLng: [36.77, -119.41], name: "US : 198" }
-  ]; 
+  var YTJSON;
+  var objJSON;
+
+  var url = 'https://streamdata.motwin.net/http://stockmarket.streamdata.io/prices?X-Sd-Token=ZjRlZmI1NGQtYjY4OS00NTJkLWIzMDItNmNmYjg0NDEyM2Q1';
+
+
 
 
   //addMapMarkers( getYTJSON() );
+  //homes.sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+  //jsonData.sort((a, b) => parseFloat(a.viewers) - parseFloat(b.viewers));
 
-  //$.ajax({
-  //  url: url,
-  //  data: data,
-  //  success: success,
-  //  dataType: dataType
-  //});
 
-    // Usage: get something via ajax
-    poll(function() {
-      addMapMarkers( getYTJSON() );
-      alert("start poll");
-      return axios.get( 'something.json' );
-      }, millisecondsTimeout, timeInterval).then(function() {
-        alert("then poll");
-        // Polling done, now do something else!
-        //poll(function() { return axios.get( getYTJSON() ) }, millisecondsTimeout, timeInterval);
-        //addMapMarkers( getYTJSON() );
-      }).catch(function() {
-        addMapMarkers( getYTJSON() );
-        alert("catch poll");
-        // Polling timed out, handle the error!
+  
+  fetch(url).then((response) => {
+    const reader = response.body.getReader();
+    const stream = new ReadableStream({
+      start(controller) {
+        // The following function handles each data chunk
+        function push() {
+          // "done" is a Boolean and value a "Uint8Array"
+          YTJSON = getYTJSON();
+          //objJSON = JSON.parse(YTJSON);
+
+          YTJSON.sort((b, a) => parseFloat(a.viewers) - parseFloat(b.viewers));
+
+          // Calculate and fill the map bars correspondingly
+          fillMapBar( YTJSON );
+
+          // Place the markers for the countries in the JSON from YouTube
+          addMapMarkers( YTJSON );
+
+          reader.read().then(({ done, value }) => {
+            // Is there no more data to read?
+            if (done) {
+              // Tell the browser that we have finished sending data
+              controller.close();
+              return;
+            }
+  
+            // Get the data and send it to the browser via the controller
+            controller.enqueue(value);
+            push();
+          });
+        };
+        
+        push();
+      }
     });
+  
+    return new Response(stream, { headers: { "Content-Type": "text/html" } });
+  });
 
-  //Promise.all([
-  //    poll(function() { return axios.get('something1.json'); 
-  //    alert("catch poll1");
-//
-  //  }, 2000, 150),
-  //    poll(function() { return axios.get('something2.json'); 
-  //    alert("catch poll2");
-//
-  //  }, 2000, 150),
-  //    poll(function() { return axios.get('something3.json'); 
-  //    alert("catch poll3");
-  //  }, 2000, 150)
-  //]);
+
+
 
   //const continuousPromise = (promiseFactory, interval)  => {
   //    const execute = () => promiseFactory().finally(waitAndExecute);
